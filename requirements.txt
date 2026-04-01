@@ -1,0 +1,13 @@
+SQLAlchemy>=2.0
+feedparser>=6.0
+scikit-learn>=1.4
+numpy>=1.26
+python-dateutil>=2.9
+python-dotenv>=1.0
+# Optional UI
+streamlit>=1.33
+
+# Optional summarization (only used if OPENAI_API_KEY is set)
+openai>=1.0
+psycopg2-binary
+resend
