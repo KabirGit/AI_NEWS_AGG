@@ -174,6 +174,6 @@ MIT License
 
 ## 👤 Author
 
-<Kabir Talbhandare>
+<Kabir_Talbhandare>
 
 ---
