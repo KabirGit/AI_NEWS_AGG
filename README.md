@@ -1,118 +1,179 @@
-# AI News Aggregator
+# 🧠 AI Personalized News Aggregator
 
-Streamlit UI + background worker that ingests RSS feeds, stores articles in Postgres, ranks recommendations per user, and (optionally) sends an email digest.
+A production-ready AI-powered news aggregation system that ingests, ranks, summarizes, and delivers personalized news using a modular, containerized architecture.
 
-## Architecture (high level)
+---
 
-```mermaid
-flowchart LR
-  subgraph UI[Web UI]
-    S[Streamlit\nnews_aggregator/ui/app.py]
-  end
+## 🚀 Features
 
-  subgraph Worker[Background Worker]
-    W[Worker\nmain.py → scheduler.run_daily_pipeline()]
-  end
+* 📡 **RSS Ingestion Pipeline** — Fetches and normalizes news from multiple sources
+* 🧠 **Recommendation Engine** — TF-IDF + cosine similarity + recency weighting
+* ✂️ **Summarization** — Extractive summarization (OpenAI optional)
+* 📧 **Email Digest** — Personalized daily news via email
+* 🖥️ **Interactive UI** — Streamlit-based user interface
+* 🗄️ **Database Layer** — PostgreSQL with SQLAlchemy ORM
+* ⚙️ **Background Scheduler** — Automated daily pipeline execution
 
-  subgraph DB[(PostgreSQL)]
-    P[(articles/users/interactions)]
-  end
+---
 
-  RSS[RSS feeds] --> W
-  W --> P
-  S --> P
-  W --> RESEND[Resend API (optional)]
+## 🏗️ Architecture
+
+* **Frontend**: Streamlit
+* **Backend**: Python (modular services)
+* **Database**: PostgreSQL
+* **ML Layer**: Scikit-learn (TF-IDF + similarity)
+* **Containerization**: Docker + Docker Compose
+* **Deployment**: Render (Web Service + Background Worker)
+
+---
+
+## ⚙️ Local Development (Docker)
+
+### 1. Clone repo
+
+```bash
+git clone https://github.com/<KabirGit>/<AI_NEWS_AGG>.git
+cd <repo-name>
 ```
 
-## Required environment variables
-
-- **Always required**
-  - `DATABASE_URL`: SQLAlchemy URL (Postgres recommended)
-  - `APP_ENV`: `local` / `production` (used for config/logging conventions)
-  - `LOG_LEVEL`: e.g. `INFO`
-- **Email (only if you enable sending)**
-  - `SEND_EMAILS`: `true`/`false`
-  - `RESEND_API_KEY`
-  - `EMAIL_FROM`
-
-See `.env.example` for the full list of supported variables.
-
-## Local dev (Docker Compose)
-
-1) Create your env file:
+### 2. Setup environment
 
 ```bash
 cp .env.example .env
 ```
 
-2) Start:
+Update `.env`:
 
-```bash
-docker compose up --build
+```env
+DATABASE_URL=postgresql://postgres:password@db:5432/news_db
+RESEND_API_KEY=your_key
+EMAIL_FROM=your_email
 ```
 
-3) Open the UI:
-- `http://localhost:8501`
-
-### Fresh start (delete volumes)
+### 3. Run system
 
 ```bash
-docker compose down -v
-docker compose up --build
+docker-compose up --build
 ```
 
-## Running roles
+### 4. Access UI
 
-- **UI (Streamlit)**: `news_aggregator/ui/app.py`
-  - Docker default command runs the UI
-  - Initializes the DB schema on startup (`init_db()`)
-- **Worker (pipeline)**: `main.py`
-  - Run with `python main.py`
-  - Initializes the DB schema before running the pipeline (`init_db()`)
+```
+http://localhost:8501
+```
 
-## Render deployment
+---
 
-You’ll deploy **two services from the same repo** (same Dockerfile):
+## 🧪 Local (Without Docker)
 
-### 1) PostgreSQL
+### Install dependencies
 
-Create a Render PostgreSQL instance and copy its **Internal Database URL** (or External if you prefer).
+```bash
+pip install -r requirements.txt
+```
 
-### 2) Web Service (Streamlit UI)
+### Set environment
 
-- **Environment**: Docker
-- **Dockerfile path**: `Dockerfile`
-- **Start command**: (leave default Docker CMD)  
-  The image default starts Streamlit.
-- **Env vars**:
-  - `DATABASE_URL`
-  - `APP_ENV=production`
-  - `LOG_LEVEL=INFO`
-  - Optional: `OPENAI_API_KEY`, `OPENAI_MODEL`, `RSS_URLS`, weights
+```bash
+export DATABASE_URL=postgresql://localhost:5432/news_db
+```
 
-### 3) Background Worker
+### Run services
 
-- **Environment**: Docker
-- **Dockerfile path**: `Dockerfile`
-- **Start command**:
+**UI:**
+
+```bash
+streamlit run app.py
+```
+
+**Scheduler:**
 
 ```bash
 python main.py
 ```
 
-- **Env vars**:
-  - `DATABASE_URL`
-  - `APP_ENV=production`
-  - `LOG_LEVEL=INFO`
-  - Email (optional):
-    - `SEND_EMAILS=true`
-    - `RESEND_API_KEY`
-    - `EMAIL_FROM`
+---
 
-## Resume / ATS bullets (example)
+## ☁️ Production Deployment (Render)
 
-- Built a Dockerized Streamlit + Python worker system that ingests RSS feeds, stores content in PostgreSQL, and serves personalized recommendations.
-- Implemented environment-driven configuration with fail-fast validation and secrets hygiene for production deployments.
-- Designed a pipeline to normalize and deduplicate RSS articles and generate per-user ranked digests.
-- Added lightweight retry-based fault tolerance for RSS ingestion and email delivery to reduce transient failures.
+### Services
 
+| Service        | Description                 |
+| -------------- | --------------------------- |
+| Web Service    | Streamlit UI                |
+| Background Job | Scheduler pipeline          |
+| Database       | Managed PostgreSQL (Render) |
+
+---
+
+### Deployment Steps
+
+1. Push code to GitHub
+2. Create PostgreSQL on Render
+3. Deploy:
+
+   * Web Service → `streamlit run app.py`
+   * Worker → `python main.py`
+4. Set environment variables:
+
+   ```
+   DATABASE_URL
+   RESEND_API_KEY
+   EMAIL_FROM
+   ```
+
+---
+
+## 🔑 Environment Variables
+
+```env
+DATABASE_URL=
+RESEND_API_KEY=
+EMAIL_FROM=
+OPENAI_API_KEY=
+APP_ENV=local
+LOG_LEVEL=INFO
+```
+
+---
+
+## 📊 Key Components
+
+* **RSS Fetcher** — Ingests and cleans feed data
+* **Recommender** — Ranks articles using hybrid scoring
+* **Summarizer** — Generates concise summaries
+* **Email Service** — Sends daily digest
+* **Scheduler** — Automates full pipeline
+
+---
+
+## 🧠 Design Highlights
+
+* Environment-driven configuration
+* Stateless services (cloud-ready)
+* Modular architecture (scalable + testable)
+* Idempotent ingestion (deduplication via DB constraints)
+* Separation of concerns (UI vs worker)
+
+---
+
+## 📌 Future Improvements
+
+* User interaction tracking (click-based personalization)
+* Real-time streaming (Kafka / queues)
+* Advanced NLP summarization (LLMs)
+* Frontend upgrade (React dashboard)
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+## 👤 Author
+
+<Kabir Talbhandare>
+
+---
